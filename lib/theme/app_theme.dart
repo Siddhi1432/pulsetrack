@@ -1,3 +1,5 @@
+//Centralized Theme System
+
 import 'package:flutter/material.dart';
 
 class AppTheme {
