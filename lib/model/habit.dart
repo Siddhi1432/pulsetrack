@@ -10,7 +10,7 @@ enum Mood{ //fixed set of moods
 class Habit {
   final String title; //immutable
   final String description;
-  final bool isCompleted; //future habit tracking
+  bool isCompleted; //habit tracking
   final Mood mood; //emotional state mapping
 
   Habit({

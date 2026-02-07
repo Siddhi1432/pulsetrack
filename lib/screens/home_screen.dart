@@ -139,8 +139,29 @@ class _HomeScreenState extends State<HomeScreen>{
             ),
             child: ListTile(
               leading: _getMoodIcon(habit.mood),
-              title: Text(habit.title),
-              subtitle: Text(habit.description),
+              title: Text(
+                  habit.title,
+                style: TextStyle(
+                  decoration: habit.isCompleted
+                      ? TextDecoration.lineThrough
+                      : TextDecoration.none,
+                  color: habit.isCompleted ? Colors.grey : null,
+                ),
+              ),
+              subtitle: Text(
+                  habit.description,
+                style: TextStyle(
+                  color: habit.isCompleted ? Colors.grey : null,
+                ),
+              ),
+              trailing: Checkbox(
+                value: habit.isCompleted,
+                onChanged: (value){
+                  setState(() {
+                    habit.isCompleted = value ?? false;
+                  });
+                },
+              ),
             ),
           );
         },
