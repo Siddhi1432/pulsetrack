@@ -119,6 +119,53 @@ class _HomeScreenState extends State<HomeScreen>{
     Navigator.pop(context);
   }
 
+  int get _completedHabitsCount {
+    return _habits.where((habit) => habit.isCompleted).length;
+  }
+
+  double get _progressValue {
+    if(_habits.isEmpty) return 0;
+    return _completedHabitsCount / _habits.length;
+  }
+
+  Widget _buildProgressSummary(){
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.deepPurple,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Today’s Progress',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$_completedHabitsCount of ${_habits.length} habits completed',
+            style: const TextStyle(color: Colors.white24),
+          ),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(
+            value: _progressValue,
+            backgroundColor: Colors.white24,
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -126,45 +173,52 @@ class _HomeScreenState extends State<HomeScreen>{
       appBar: AppBar(
         title: const Text("PulseTrack"),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _habits.length,
-        itemBuilder: (context,index){
-          final habit = _habits[index];
+      body: Column(
+        children: [
+          _buildProgressSummary(),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _habits.length,
+              itemBuilder: (context,index){
+                final habit = _habits[index];
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    leading: _getMoodIcon(habit.mood),
+                    title: Text(
+                      habit.title,
+                      style: TextStyle(
+                        decoration: habit.isCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                        color: habit.isCompleted ? Colors.grey : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      habit.description,
+                      style: TextStyle(
+                        color: habit.isCompleted ? Colors.grey : null,
+                      ),
+                    ),
+                    trailing: Checkbox(
+                      value: habit.isCompleted,
+                      onChanged: (value){
+                        setState(() {
+                          habit.isCompleted = value ?? false;
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
-            child: ListTile(
-              leading: _getMoodIcon(habit.mood),
-              title: Text(
-                  habit.title,
-                style: TextStyle(
-                  decoration: habit.isCompleted
-                      ? TextDecoration.lineThrough
-                      : TextDecoration.none,
-                  color: habit.isCompleted ? Colors.grey : null,
-                ),
-              ),
-              subtitle: Text(
-                  habit.description,
-                style: TextStyle(
-                  color: habit.isCompleted ? Colors.grey : null,
-                ),
-              ),
-              trailing: Checkbox(
-                value: habit.isCompleted,
-                onChanged: (value){
-                  setState(() {
-                    habit.isCompleted = value ?? false;
-                  });
-                },
-              ),
-            ),
-          );
-        },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddHabitSheet,
