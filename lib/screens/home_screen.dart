@@ -12,6 +12,7 @@ class HomeScreen extends StatefulWidget{
 }
 
 class _HomeScreenState extends State<HomeScreen>{
+
   final List<Habit> _habits = [
     Habit(
       title: 'Drink water',
@@ -23,12 +24,10 @@ class _HomeScreenState extends State<HomeScreen>{
       description: '30 minutes of physical activity',
       mood: Mood.stressed,
     ),
-    Habit(
-      title: 'Study Flutter',
-      description: 'Practice widgets and layouts',
-      mood: Mood.neutral,
-    ),
   ];
+
+  final TextEditingController _titleController = TextEditingController(); //read user input
+  final TextEditingController _descriptionController = TextEditingController();
 
   Icon _getMoodIcon(Mood mood) {
     switch(mood){
@@ -42,6 +41,82 @@ class _HomeScreenState extends State<HomeScreen>{
       default:
         return const Icon(Icons.sentiment_neutral, color: Colors.orange);
     }
+  }
+
+  void _showAddHabitSheet() {
+    showModalBottomSheet(//displays input form
+      context: context,
+      isScrollControlled: true,//avoid keyboard overlap
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context){
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom+16,//handles soft keyboard
+            top:16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                  "Add new habit",
+                style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: "Habit Title",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _addHabit,
+                  child: const Text("Add Habit"),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    );
+  }
+
+  void _addHabit() {
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if(title.isEmpty || description.isEmpty){
+      return;
+    }
+
+    setState(() {//Tells Flutter: UI needs rebuild
+      _habits.add(
+        Habit(title: title, description: description),
+      );
+    });
+
+    _titleController.clear();
+    _descriptionController.clear();
+
+    Navigator.pop(context);
   }
 
   @override
@@ -66,15 +141,12 @@ class _HomeScreenState extends State<HomeScreen>{
               leading: _getMoodIcon(habit.mood),
               title: Text(habit.title),
               subtitle: Text(habit.description),
-              trailing: const Icon(Icons.chevron_right),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          //Add habit in next tasks
-        },
+        onPressed: _showAddHabitSheet,
         child: const Icon(Icons.add),
       ),
     );
