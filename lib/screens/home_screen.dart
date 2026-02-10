@@ -13,6 +13,8 @@ class HomeScreen extends StatefulWidget{
 
 class _HomeScreenState extends State<HomeScreen>{
 
+  Mood _selectedMood = Mood.neutral;
+
   final List<Habit> _habits = [
     Habit(
       title: 'Drink water',
@@ -84,6 +86,26 @@ class _HomeScreenState extends State<HomeScreen>{
                 ),
               ),
               const SizedBox(height: 16),
+              const Text(
+                'Select Mood',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+
+              Wrap(
+                spacing: 12,
+                children: Mood.values.map((mood){
+                  return ChoiceChip(
+                    label: Text(mood.name),
+                    selected: _selectedMood == mood,
+                    onSelected: (selected){
+                      setState(() {
+                        _selectedMood = mood;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
 
               SizedBox(
                 width: double.infinity,
@@ -109,12 +131,17 @@ class _HomeScreenState extends State<HomeScreen>{
 
     setState(() {//Tells Flutter: UI needs rebuild
       _habits.add(
-        Habit(title: title, description: description),
+        Habit(
+            title: title,
+            description: description,
+        mood: _selectedMood),
       );
     });
 
     _titleController.clear();
     _descriptionController.clear();
+
+    _selectedMood = Mood.neutral;
 
     Navigator.pop(context);
   }
