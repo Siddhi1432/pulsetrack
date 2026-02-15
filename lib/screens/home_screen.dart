@@ -13,6 +13,9 @@ class HomeScreen extends StatefulWidget{
 
 class _HomeScreenState extends State<HomeScreen>{
 
+  Habit? _editingHabit;
+  int? _editingIndex;
+
   Mood _selectedMood = Mood.neutral;
 
   final List<Habit> _habits = [
@@ -40,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen>{
       case Mood.sad:
         return const Icon(Icons.sentiment_dissatisfied, color: Colors.blueGrey);
       case Mood.neutral:
-      default:
         return const Icon(Icons.sentiment_neutral, color: Colors.orange);
     }
   }
@@ -63,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen>{
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                  "Add new habit",
-                style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
+              Text(
+                  _editingHabit == null ? "Add New Habit" : "Edit Habit",
+                style: const TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
 
@@ -110,8 +112,8 @@ class _HomeScreenState extends State<HomeScreen>{
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _addHabit,
-                  child: const Text("Add Habit"),
+                  onPressed: _saveHabit,
+                  child: Text(_editingHabit == null ? "Add Habit" : "Update Habit"),
                 ),
               ),
             ],
@@ -121,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen>{
     );
   }
 
-  void _addHabit() {
+  void _saveHabit() {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
 
@@ -129,19 +131,32 @@ class _HomeScreenState extends State<HomeScreen>{
       return;
     }
 
-    setState(() {//Tells Flutter: UI needs rebuild
-      _habits.add(
-        Habit(
+    setState(() {
+      if(_editingHabit == null){
+        // ADD MODE
+        _habits.add(
+          Habit(
             title: title,
             description: description,
-        mood: _selectedMood),
-      );
+            mood: _selectedMood,
+          ),
+        );
+      } else {
+        // EDIT MODE
+        _habits[_editingIndex!] = Habit(
+            title: title,
+            description: description,
+            isCompleted: _editingHabit!.isCompleted,
+            mood: _selectedMood,
+        );
+      }
     });
 
     _titleController.clear();
     _descriptionController.clear();
-
     _selectedMood = Mood.neutral;
+    _editingHabit = null;
+    _editingIndex = null;
 
     Navigator.pop(context);
   }
@@ -153,6 +168,19 @@ class _HomeScreenState extends State<HomeScreen>{
   double get _progressValue {
     if(_habits.isEmpty) return 0;
     return _completedHabitsCount / _habits.length;
+  }
+
+  void _openEditHabit(int index) {
+    final habit = _habits[index];
+
+    _titleController.text = habit.title;
+    _descriptionController.text = habit.description;
+    _selectedMood = habit.mood;
+
+    _editingHabit = habit;
+    _editingIndex = index;
+
+    _showAddHabitSheet();
   }
 
   Widget _buildProgressSummary(){
@@ -216,6 +244,9 @@ class _HomeScreenState extends State<HomeScreen>{
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
+                    onTap: (){
+                      _openEditHabit(index);
+                    },
                     leading: _getMoodIcon(habit.mood),
                     title: Text(
                       habit.title,
