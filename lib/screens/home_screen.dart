@@ -183,6 +183,28 @@ class _HomeScreenState extends State<HomeScreen>{
     _showAddHabitSheet();
   }
 
+  Future<bool?> _showDeleteConformation(){
+    return showDialog<bool>(
+      context: context,
+      builder: (context){
+        return AlertDialog(
+          title: const Text("Delete Habit"),
+          content: const Text("Are you sure you want to delete this habit?"),
+          actions: [
+            TextButton(
+              onPressed: ()=> Navigator.pop(context,false),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: ()=> Navigator.pop(context,true),
+              child: const Text("Delete"),
+            )
+          ],
+        );
+      }
+    );
+  }
+
   Widget _buildProgressSummary(){
     return Container(
       width: double.infinity,
@@ -238,41 +260,64 @@ class _HomeScreenState extends State<HomeScreen>{
               itemBuilder: (context,index){
                 final habit = _habits[index];
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                return Dismissible(
+                  key: ValueKey(habit.title + habit.description),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    color: Colors.red,
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
-                  child: ListTile(
-                    onTap: (){
-                      _openEditHabit(index);
-                    },
-                    leading: _getMoodIcon(habit.mood),
-                    title: Text(
-                      habit.title,
-                      style: TextStyle(
-                        decoration: habit.isCompleted
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                        color: habit.isCompleted ? Colors.grey : null,
-                      ),
+
+                  confirmDismiss: (direction) async{
+                    return await _showDeleteConformation();
+                  },
+
+                  onDismissed: (direction){
+                    final removedHabit = habit;
+
+                    setState(() {
+                      _habits.remove(removedHabit);
+                    });
+                  },
+
+                  child: Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    subtitle: Text(
-                      habit.description,
-                      style: TextStyle(
-                        color: habit.isCompleted ? Colors.grey : null,
-                      ),
-                    ),
-                    trailing: Checkbox(
-                      value: habit.isCompleted,
-                      onChanged: (value){
-                        setState(() {
-                          habit.isCompleted = value ?? false;
-                        });
+                    child: ListTile(
+                      onTap: (){
+                        _openEditHabit(index);
                       },
+                      leading: _getMoodIcon(habit.mood),
+                      title: Text(
+                        habit.title,
+                        style: TextStyle(
+                          decoration: habit.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
+                          color: habit.isCompleted ? Colors.grey : null,
+                        ),
+                        ),
+                      subtitle: Text(
+                        habit.description,
+                        style: TextStyle(
+                          color: habit.isCompleted ? Colors.grey : null,
+                        ),
+                      ),
+                      trailing: Checkbox(
+                        value: habit.isCompleted,
+                        onChanged: (value){
+                          setState(() {
+                            habit.isCompleted = value ?? false;
+                          });
+                        },
+                      ),
+                      ),
                     ),
-                  ),
-                );
+                  );
               },
             ),
           ),
