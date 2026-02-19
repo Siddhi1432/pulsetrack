@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../model/habit.dart';
+import '../services/habit_storage.dart';
 
 class HomeScreen extends StatefulWidget{
   const HomeScreen({super.key});
@@ -18,18 +19,21 @@ class _HomeScreenState extends State<HomeScreen>{
 
   Mood _selectedMood = Mood.neutral;
 
-  final List<Habit> _habits = [
-    Habit(
-      title: 'Drink water',
-      description: 'Drink at least 8 glasses of water',
-      mood: Mood.happy,
-    ),
-    Habit(
-      title: 'Exercise',
-      description: '30 minutes of physical activity',
-      mood: Mood.stressed,
-    ),
-  ];
+  List<Habit> _habits = [];
+
+//Load Habits When App Starts
+  @override
+  void initState(){
+    super.initState();
+    _loadHabits();
+  }
+
+  void _loadHabits() async{
+    final habits = await HabitStorage.loadHabits();
+    setState(() {
+      _habits = habits;
+    });
+  }
 
   final TextEditingController _titleController = TextEditingController(); //read user input
   final TextEditingController _descriptionController = TextEditingController();
@@ -151,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen>{
         );
       }
     });
+    HabitStorage.saveHabits(_habits);
 
     _titleController.clear();
     _descriptionController.clear();
@@ -280,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen>{
                     setState(() {
                       _habits.remove(removedHabit);
                     });
+                    HabitStorage.saveHabits(_habits);
                   },
 
                   child: Card(
