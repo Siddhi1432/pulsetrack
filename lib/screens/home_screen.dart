@@ -5,7 +5,14 @@ import '../model/habit.dart';
 import '../services/habit_storage.dart';
 
 class HomeScreen extends StatefulWidget{
-  const HomeScreen({super.key});
+  final List<Habit> habits;
+  final Function(List<Habit>) onHabitsChanged;
+
+  const HomeScreen({
+    super.key,
+    required this.habits,
+    required this.onHabitsChanged,
+  });
 
   @override
   State<StatefulWidget> createState() => _HomeScreenState();
@@ -19,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen>{
 
   Mood _selectedMood = Mood.neutral;
 
-  List<Habit> _habits = [];
+  List<Habit> get _habits => widget.habits;
 
 //Load Habits When App Starts
   @override
@@ -31,8 +38,10 @@ class _HomeScreenState extends State<HomeScreen>{
   void _loadHabits() async{
     final habits = await HabitStorage.loadHabits();
     setState(() {
-      _habits = habits;
+      widget.habits.clear();
+      widget.habits.addAll(habits);
     });
+    widget.onHabitsChanged(_habits);
   }
 
   final TextEditingController _titleController = TextEditingController(); //read user input
@@ -155,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen>{
         );
       }
     });
+    widget.onHabitsChanged(_habits);
     HabitStorage.saveHabits(_habits);
 
     _titleController.clear();
@@ -285,6 +295,7 @@ class _HomeScreenState extends State<HomeScreen>{
                     setState(() {
                       _habits.remove(removedHabit);
                     });
+                    widget.onHabitsChanged(_habits);
                     HabitStorage.saveHabits(_habits);
                   },
 
@@ -319,6 +330,9 @@ class _HomeScreenState extends State<HomeScreen>{
                           setState(() {
                             habit.isCompleted = value ?? false;
                           });
+
+                          widget.onHabitsChanged(_habits);
+                          HabitStorage.saveHabits(_habits);
                         },
                       ),
                       ),
